@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://c1box5wjjvikw"]
+
+[ext_resource type="Texture2D" uid="uid://blhcvpu5ofj5l" path="res://Backgrounds/bg1.jpg" id="1_p1c7k"]
+[ext_resource type="Script" uid="uid://c0ktv4xqor4m2" path="res://MapCamera2D.gd" id="2_ks8nc"]
+[ext_resource type="Texture2D" uid="uid://bsrm5bormg0hi" path="res://Photos/Messenger_creation_2B242248-8027-4C75-B14B-EBE9F2428243.jpeg" id="3_csxqg"]
+[ext_resource type="Script" uid="uid://curl2tll5w4l6" path="res://scripts/ImagePlacer.cs" id="3_lxq7f"]
+[ext_resource type="Script" uid="uid://ch5hxlh5xp033" path="res://scripts/TimerManager.cs" id="3_xcqx3"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_ks8nc"]
+font_size = 72
+
+[node name="FindPhotos" type="Node2D" unique_id=1492414583]
+
+[node name="Backdrop" type="ColorRect" parent="." unique_id=441556829]
+offset_right = 1697.0
+offset_bottom = 1270.0
+color = Color(0.57203114, 0.6758308, 0.7478649, 1)
+
+[node name="MainPhoto" type="Sprite2D" parent="." unique_id=623934091]
+position = Vector2(856, 626)
+texture = ExtResource("1_p1c7k")
+
+[node name="HiddenPhoto" type="Sprite2D" parent="." unique_id=618639222]
+position = Vector2(1712, 1252)
+
+[node name="PlayerCam" type="Camera2D" parent="." unique_id=341465614]
+script = ExtResource("2_ks8nc")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=521655732]
+
+[node name="Label" type="Label" parent="CanvasLayer" unique_id=1030360069]
+top_level = true
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 201.0
+grow_horizontal = 2
+text = "60
+"
+label_settings = SubResource("LabelSettings_ks8nc")
+horizontal_alignment = 1
+
+[node name="ImagePlacer" type="Sprite2D" parent="CanvasLayer" unique_id=146635501 node_paths=PackedStringArray("timerManager", "imageToPlace")]
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("3_csxqg")
+script = ExtResource("3_lxq7f")
+timerManager = NodePath("../../Timer")
+imageToPlace = NodePath(".")
+
+[node name="Timer" type="Timer" parent="." unique_id=1283327386 node_paths=PackedStringArray("timeLabel", "timer")]
+autostart = true
+script = ExtResource("3_xcqx3")
+timeLabel = NodePath("../CanvasLayer/Label")
+timer = NodePath(".")

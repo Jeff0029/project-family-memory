@@ -1,0 +1,154 @@
+[gd_scene format=3 uid="uid://d3a52a3wdx6b1"]
+
+[ext_resource type="Script" uid="uid://bvlbodjyvwkko" path="res://scripts/GameplayController.gd" id="1_ijkl"]
+
+[node name="Game" type="Node2D" unique_id=516505789]
+script = ExtResource("1_ijkl")
+placement_delay_seconds = 5.0
+gameplay_timer = 60
+pictures_per_row = 3
+min_scale = 0.1
+max_scale = 0.575
+fade_overlay_on_duration = 5.0
+
+[node name="Backdrop" type="ColorRect" parent="." unique_id=617490544]
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0.72264767, 0.7591174, 0.80716103, 1)
+
+[node name="BackgroundSprite" type="Sprite2D" parent="." unique_id=1452782894]
+position = Vector2(960, 540)
+
+[node name="HiddenPhoto" type="Sprite2D" parent="." unique_id=947498434]
+visible = false
+position = Vector2(960, 540)
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=414289824]
+anchor_mode = 0
+
+[node name="FadeOverlay" type="ColorRect" parent="." unique_id=1772168246]
+visible = false
+z_index = 10
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0, 0, 0, 1)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=784476486]
+
+[node name="UI" type="Control" parent="CanvasLayer" unique_id=83937720]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="RoundLabel" type="Label" parent="CanvasLayer/UI" unique_id=392464283]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 220.0
+offset_bottom = 60.0
+text = "Round"
+
+[node name="StatusLabel" type="Label" parent="CanvasLayer/UI" unique_id=590931693]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 80.0
+offset_right = 700.0
+offset_bottom = 130.0
+text = "Place the photo"
+
+[node name="TimerLabel" type="Label" parent="CanvasLayer/UI" unique_id=882187312]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -50.0
+offset_right = 50.0
+offset_bottom = 100.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 48
+text = "20"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="CanvasLayer/UI" unique_id=420797093]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -320.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 80.0
+grow_horizontal = 0
+text = "Player 1: 0 | Player 2: 0"
+horizontal_alignment = 2
+
+[node name="NarrativeLabel" type="Label" parent="CanvasLayer/UI" unique_id=308496349]
+visible = false
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = -120.0
+offset_right = 400.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+horizontal_alignment = 1
+
+[node name="FinalOverlay" type="Control" parent="CanvasLayer" unique_id=321726892]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer/FinalOverlay" unique_id=2024595609]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.1, 0.85)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/FinalOverlay" unique_id=1819409628]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -200.0
+offset_right = 250.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="WinnerLabel" type="Label" parent="CanvasLayer/FinalOverlay/VBoxContainer" unique_id=1941939717]
+layout_mode = 2
+text = "Winner"
+horizontal_alignment = 1
+
+[node name="FinalScoresLabel" type="Label" parent="CanvasLayer/FinalOverlay/VBoxContainer" unique_id=1198809513]
+layout_mode = 2
+text = "Scores"
+horizontal_alignment = 1
+
+[node name="RematchButton" type="Button" parent="CanvasLayer/FinalOverlay/VBoxContainer" unique_id=1184921867]
+layout_mode = 2
+text = "Rematch"
+
+[node name="MenuButton" type="Button" parent="CanvasLayer/FinalOverlay/VBoxContainer" unique_id=783076757]
+layout_mode = 2
+text = "Back to Menu"
+
+[node name="ExitButton" type="Button" parent="CanvasLayer/FinalOverlay/VBoxContainer" unique_id=239910664]
+layout_mode = 2
+text = "Exit"
