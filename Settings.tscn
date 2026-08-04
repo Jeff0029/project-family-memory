@@ -39,17 +39,29 @@ horizontal_alignment = 1
 layout_mode = 2
 text = "Volume"
 
+[node name="MasterLabel" type="Label" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Master"
+
 [node name="MasterSlider" type="HSlider" parent="PanelContainer/VBoxContainer"]
 layout_mode = 2
 max_value = 1.0
 step = 0.01
 value = 1.0
 
+[node name="MusicLabel" type="Label" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Music"
+
 [node name="BackgroundSlider" type="HSlider" parent="PanelContainer/VBoxContainer"]
 layout_mode = 2
 max_value = 1.0
 step = 0.01
 value = 1.0
+
+[node name="UILabel" type="Label" parent="PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "UI"
 
 [node name="UISlider" type="HSlider" parent="PanelContainer/VBoxContainer"]
 layout_mode = 2

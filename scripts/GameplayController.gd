@@ -1,5 +1,7 @@
 extends Node2D
 
+const UI_SELECT_DELAY_SECONDS: float = 0.08
+
 @export_range(0.1, 5.0) var placement_delay_seconds: float = 1.0
 @export_range(1, 20) var countdown_seconds: int = 5
 @export_range(5, 120) var gameplay_timer: int = 20
@@ -81,6 +83,9 @@ var find_the_memory_controller: FindTheMemory
 var calculate_scoring_controller: CalculateScoring
 var ui_text_controller: UITextController
 var camera_controls_enabled: bool = true
+var sfx_streams: Dictionary = {}
+var active_search_sfx_player: AudioStreamPlayer
+var active_placing_sfx_player: AudioStreamPlayer
 
 func _ready() -> void:
 	register_input_actions()
@@ -109,6 +114,7 @@ func _ready() -> void:
 	add_child(ui_text_controller)
 
 	load_assets()
+	load_sfx_assets()
 	build_gallery()
 	create_submit_button()
 	rematch_button.pressed.connect(_on_rematch_pressed)
@@ -275,6 +281,7 @@ func start_search_phase() -> void:
 	state = "searching"
 	search_timer = gameplay_timer
 	update_timer_label(gameplay_timer)
+	play_random_searching_sfx()
 	await find_the_memory_controller.fit_camera_to_background()
 	camera_controls_enabled = true
 	update_ui_visibility()
@@ -309,11 +316,13 @@ func get_camera_target_position() -> Vector2:
 	return backdrop.global_position + backdrop.size * 0.5
 
 func finish_round(found: bool) -> void:
+	stop_searching_sfx()
 	reset_interaction_state()
 	if state == "searching":
 		state = "idle"
 	var score: int = 0
 	if found:
+		play_sfx(get_sfx_stream("ImageFound"), GameSettings.ui_volume)
 		hidden_photo.modulate = Color(1, 1, 1, max_opacity)
 		score = calculate_score()
 		scores[current_player] += score
@@ -413,17 +422,31 @@ func get_repeat_interval_seconds(repeat_count: int) -> float:
 func apply_placement_action(action_name: String) -> void:
 	match action_name:
 		"scale_up":
+			var previous_scale_up: float = hidden_photo.scale.x
 			var next_scale_up: float = clamp(hidden_photo.scale.x * 1.05, get_min_scale_limit(), get_max_scale_limit())
-			hidden_photo.scale = Vector2.ONE * next_scale_up
-			sync_hidden_photo_button()
+			if not is_equal_approx(previous_scale_up, next_scale_up):
+				hidden_photo.scale = Vector2.ONE * next_scale_up
+				sync_hidden_photo_button()
+				play_alter_image_sfx()
 		"scale_down":
+			var previous_scale_down: float = hidden_photo.scale.x
 			var next_scale_down: float = clamp(hidden_photo.scale.x * 0.95, get_min_scale_limit(), get_max_scale_limit())
-			hidden_photo.scale = Vector2.ONE * next_scale_down
-			sync_hidden_photo_button()
+			if not is_equal_approx(previous_scale_down, next_scale_down):
+				hidden_photo.scale = Vector2.ONE * next_scale_down
+				sync_hidden_photo_button()
+				play_alter_image_sfx()
 		"opacity_up":
-			hidden_photo.modulate.a = clamp(hidden_photo.modulate.a + 0.05, min_opacity, max_opacity)
+			var previous_opacity_up: float = hidden_photo.modulate.a
+			var next_opacity_up: float = clamp(hidden_photo.modulate.a + 0.05, min_opacity, max_opacity)
+			if not is_equal_approx(previous_opacity_up, next_opacity_up):
+				hidden_photo.modulate.a = next_opacity_up
+				play_alter_image_sfx()
 		"opacity_down":
-			hidden_photo.modulate.a = clamp(hidden_photo.modulate.a - 0.05, min_opacity, max_opacity)
+			var previous_opacity_down: float = hidden_photo.modulate.a
+			var next_opacity_down: float = clamp(hidden_photo.modulate.a - 0.05, min_opacity, max_opacity)
+			if not is_equal_approx(previous_opacity_down, next_opacity_down):
+				hidden_photo.modulate.a = next_opacity_down
+				play_alter_image_sfx()
 
 func move_camera(delta: float) -> void:
 	var direction: Vector2 = Vector2.ZERO
@@ -569,10 +592,13 @@ func select_photo(photo_path: String) -> void:
 func update_ui_visibility() -> void:
 	var should_show_gallery: bool = (state == "placing" or state == "narrating") and selected_photo_path.is_empty()
 	gallery_panel.visible = should_show_gallery
+	if should_show_gallery:
+		play_placing_hidden_photo_sfx()
 	submit_button.visible = state == "placing" and selected_photo_path != ""
 
 func _on_submit_pressed() -> void:
 	if state == "placing":
+		play_sfx(get_sfx_stream("PhotoHiddenSubmit"), GameSettings.ui_volume)
 		place_hidden_photo()
 
 func show_narrative() -> void:
@@ -603,13 +629,125 @@ func show_final_scores() -> void:
 	exit_button.text = ui_text_controller.get_exit_text()
 
 func _on_rematch_pressed() -> void:
+	await play_ui_select_feedback()
 	get_tree().reload_current_scene()
 
 func _on_menu_pressed() -> void:
+	await play_ui_select_feedback()
 	get_tree().change_scene_to_file("res://MainMenu.tscn")
 
 func _on_exit_pressed() -> void:
+	await play_ui_select_feedback()
 	get_tree().quit()
+
+func play_alter_image_sfx() -> void:
+	play_sfx(get_sfx_stream("AlterImage"), GameSettings.ui_volume)
+
+func play_random_searching_sfx() -> void:
+	stop_searching_sfx()
+	stop_placing_hidden_photo_sfx()
+	var searching_sfx_streams: Array[AudioStream] = get_searching_sfx_streams()
+	if searching_sfx_streams.is_empty():
+		return
+	var stream: AudioStream = searching_sfx_streams[randi() % searching_sfx_streams.size()]
+	set_stream_looping(stream)
+	active_search_sfx_player = AudioStreamPlayer.new()
+	active_search_sfx_player.stream = stream
+	active_search_sfx_player.bus = &"Master"
+	active_search_sfx_player.volume_db = linear_volume_to_db(GameSettings.master_volume * GameSettings.ui_volume)
+	add_child(active_search_sfx_player)
+	active_search_sfx_player.play()
+
+func _on_searching_sfx_finished() -> void:
+	if active_search_sfx_player == null:
+		return
+	active_search_sfx_player.queue_free()
+	active_search_sfx_player = null
+
+func stop_searching_sfx() -> void:
+	if active_search_sfx_player == null:
+		return
+	active_search_sfx_player.stop()
+	active_search_sfx_player.queue_free()
+	active_search_sfx_player = null
+
+func play_placing_hidden_photo_sfx() -> void:
+	if active_placing_sfx_player != null:
+		return
+	var stream: AudioStream = get_sfx_stream("PlacingHiddenPhoto")
+	set_stream_looping(stream)
+	active_placing_sfx_player = AudioStreamPlayer.new()
+	active_placing_sfx_player.stream = stream
+	active_placing_sfx_player.bus = &"Master"
+	active_placing_sfx_player.volume_db = linear_volume_to_db(GameSettings.master_volume * GameSettings.ui_volume)
+	add_child(active_placing_sfx_player)
+	active_placing_sfx_player.play()
+
+func _on_placing_sfx_finished() -> void:
+	if active_placing_sfx_player == null:
+		return
+	active_placing_sfx_player.queue_free()
+	active_placing_sfx_player = null
+
+func stop_placing_hidden_photo_sfx() -> void:
+	if active_placing_sfx_player == null:
+		return
+	active_placing_sfx_player.stop()
+	active_placing_sfx_player.queue_free()
+	active_placing_sfx_player = null
+
+func play_ui_select_feedback() -> void:
+	play_sfx(get_sfx_stream("UIMenuSelect"), GameSettings.ui_volume)
+	await get_tree().create_timer(UI_SELECT_DELAY_SECONDS).timeout
+
+func play_sfx(stream: AudioStream, channel_volume: float) -> void:
+	if stream == null:
+		return
+	var player: AudioStreamPlayer = AudioStreamPlayer.new()
+	player.stream = stream
+	player.bus = &"Master"
+	player.volume_db = linear_volume_to_db(GameSettings.master_volume * channel_volume)
+	player.finished.connect(player.queue_free)
+	add_child(player)
+	player.play()
+
+func linear_volume_to_db(volume_linear: float) -> float:
+	var clamped_volume: float = clamp(volume_linear, 0.0, 1.0)
+	if clamped_volume <= 0.0001:
+		return -80.0
+	return linear_to_db(clamped_volume)
+
+func set_stream_looping(stream: AudioStream) -> void:
+	if stream is AudioStreamMP3:
+		(stream as AudioStreamMP3).loop = true
+	elif stream is AudioStreamOggVorbis:
+		(stream as AudioStreamOggVorbis).loop = true
+
+func load_sfx_assets() -> void:
+	sfx_streams.clear()
+	for entry in ResourceLoader.list_directory("res://sfx"):
+		if entry.ends_with("/"):
+			continue
+		var extension: String = entry.get_extension().to_lower()
+		if extension not in ["mp3", "ogg", "wav"]:
+			continue
+		var resource: Resource = ResourceLoader.load("res://sfx/%s" % entry)
+		if resource is AudioStream:
+			var stream: AudioStream = resource
+			var base_name: String = entry.get_basename()
+			if base_name.begins_with("MainMenu") or base_name.begins_with("PlacingHiddenPhoto") or base_name.begins_with("SearchingImage"):
+				set_stream_looping(stream)
+			sfx_streams[base_name] = stream
+
+func get_sfx_stream(base_name: String) -> AudioStream:
+	return sfx_streams.get(base_name, null)
+
+func get_searching_sfx_streams() -> Array[AudioStream]:
+	var streams: Array[AudioStream] = []
+	for key in sfx_streams.keys():
+		if str(key).begins_with("SearchingImage"):
+			streams.append(sfx_streams[key])
+	return streams
 
 func register_input_actions() -> void:
 	for action in ["move_up", "move_down", "move_left", "move_right", "opacity_down", "opacity_up", "scale_up", "scale_down"]:
@@ -627,19 +765,17 @@ func register_input_actions() -> void:
 	InputMap.action_add_event("select", mouse_event)
 
 func load_assets() -> void:
-	background_paths = []
-	photo_paths = []
-	var dir = DirAccess.open("res://Backgrounds")
-	if dir:
-		for file_name in dir.get_files():
-			if file_name.ends_with(".png") or file_name.ends_with(".jpg") or file_name.ends_with(".jpeg") or file_name.ends_with(".webp"):
-				background_paths.append("res://Backgrounds/%s" % file_name)
-	var photo_dir = DirAccess.open("res://Photos")
-	if photo_dir:
-		for file_name in photo_dir.get_files():
-			if file_name.ends_with(".png") or file_name.ends_with(".jpg") or file_name.ends_with(".jpeg") or file_name.ends_with(".webp"):
-				photo_paths.append("res://Photos/%s" % file_name)
-	if background_paths.is_empty():
-		background_paths.append("res://icon.svg")
-	if photo_paths.is_empty():
-		photo_paths.append("res://icon.svg")
+	background_paths = load_resource_paths_from_folder("res://Backgrounds", ["jpg", "jpeg", "png", "webp"])
+	photo_paths = load_resource_paths_from_folder("res://Photos", ["jpg", "jpeg", "png", "webp"])
+
+func load_resource_paths_from_folder(folder_path: String, allowed_extensions: Array[String]) -> Array[String]:
+	var resource_paths: Array[String] = []
+	for entry in ResourceLoader.list_directory(folder_path):
+		if entry.ends_with("/"):
+			continue
+		var extension: String = entry.get_extension().to_lower()
+		if extension not in allowed_extensions:
+			continue
+		resource_paths.append("%s/%s" % [folder_path, entry])
+	resource_paths.sort()
+	return resource_paths

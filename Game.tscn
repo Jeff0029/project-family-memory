@@ -5,11 +5,11 @@
 [node name="Game" type="Node2D" unique_id=516505789]
 script = ExtResource("1_ijkl")
 placement_delay_seconds = 5.0
-gameplay_timer = 60
+gameplay_timer = 30
 rounds = 6
 pictures_per_row = 3
-min_pixels_squared = 2000
-min_opacity = 0.35
+min_pixels_squared = 750
+min_opacity = 0.15000000000000002
 starting_hidden_photo_scale = 0.15000000000000002
 fade_overlay_on_duration = 5.0
 

@@ -8,6 +8,9 @@ extends Control
 @onready var back_button: Button = $PanelContainer/VBoxContainer/BackButton
 @onready var title_label: Label = $PanelContainer/VBoxContainer/TitleLabel
 @onready var volume_label: Label = $PanelContainer/VBoxContainer/VolumeLabel
+@onready var master_label: Label = $PanelContainer/VBoxContainer/MasterLabel
+@onready var music_label: Label = $PanelContainer/VBoxContainer/MusicLabel
+@onready var ui_label: Label = $PanelContainer/VBoxContainer/UILabel
 @onready var language_label: Label = $PanelContainer/VBoxContainer/LanguageLabel
 @onready var remap_container: VBoxContainer = $PanelContainer/VBoxContainer/RemapContainer
 
@@ -33,6 +36,9 @@ func _ready() -> void:
 func apply_text() -> void:
 	title_label.text = GameSettings.get_text("settings")
 	volume_label.text = GameSettings.get_text("volume")
+	master_label.text = GameSettings.get_text("master")
+	music_label.text = GameSettings.get_text("music")
+	ui_label.text = GameSettings.get_text("ui")
 	language_label.text = GameSettings.get_text("language")
 	english_button.text = "English"
 	french_button.text = "Français"

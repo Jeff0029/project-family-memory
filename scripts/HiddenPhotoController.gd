@@ -43,6 +43,7 @@ func adjust_hidden_photo_scale(delta: float) -> void:
 	gameplay_controller.zoom_tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	gameplay_controller.zoom_tween.tween_property(hidden_photo, "scale", Vector2.ONE * target_scale, 0.12)
 	gameplay_controller.zoom_tween.finished.connect(sync_hidden_photo_button)
+	gameplay_controller.play_alter_image_sfx()
 
 func get_min_scale_limit() -> float:
 	if gameplay_controller.current_photo_texture == null:
