@@ -20,7 +20,7 @@ var keybinds: Dictionary = {
 
 const TEXT: Dictionary = {
 	"English": {
-		"title": "Family Memory Hunt",
+		"title": "Memory Hunt",
 		"subtitle": "A wedding tribute for 40 years of love",
 		"start": "Start Game",
 		"settings": "Settings",
@@ -43,11 +43,11 @@ const TEXT: Dictionary = {
 		"scores": "Scores",
 		"placing": "Place the photo with your mouse, then click to lock it in.",
 		"searching": "The screen will black out, then you will search for the hidden memory.",
-		"final_message": "The family memory has been found.",
+		"final_message": "The memory has been found.",
 		"choose_memory": "Choose a memory"
 	},
 	"Français": {
-		"title": "Chasse aux souvenirs de famille",
+		"title": "Chasse aux Souvenirs",
 		"subtitle": "Un hommage de mariage pour 40 ans d'amour",
 		"start": "Commencer",
 		"settings": "Paramètres",
@@ -70,7 +70,7 @@ const TEXT: Dictionary = {
 		"scores": "Scores",
 		"placing": "Placez la photo avec la souris, puis cliquez pour la verrouiller.",
 		"searching": "L'écran s'éteindra, puis vous chercherez le souvenir caché.",
-		"final_message": "Le souvenir de famille a été trouvé.",
+		"final_message": "Le souvenir a été trouvé.",
 		"choose_memory": "Choisissez un souvenir"
 	}
 }
