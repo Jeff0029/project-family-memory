@@ -28,9 +28,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -214.0
-offset_top = -175.0
+offset_top = -260.0
 offset_right = 214.0
-offset_bottom = 175.0
+offset_bottom = 260.0
 grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
@@ -45,6 +45,20 @@ horizontal_alignment = 1
 layout_mode = 2
 text = "A wedding tribute for 40 years of love"
 horizontal_alignment = 1
+
+[node name="TimeLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Time per round"
+
+[node name="TimeOption" type="OptionButton" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="RoundsLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Number of rounds"
+
+[node name="RoundsOption" type="OptionButton" parent="VBoxContainer"]
+layout_mode = 2
 
 [node name="StartButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2

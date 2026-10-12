@@ -88,6 +88,8 @@ var active_search_sfx_player: AudioStreamPlayer
 var active_placing_sfx_player: AudioStreamPlayer
 
 func _ready() -> void:
+	gameplay_timer = GameSettings.round_time_seconds
+	rounds = GameSettings.round_count
 	register_input_actions()
 	fade_overlay.visible = true
 	fade_overlay.color = Color(0, 0, 0, 1)
@@ -161,18 +163,16 @@ func _input(event: InputEvent) -> void:
 				return
 			if event.button_index == MOUSE_BUTTON_LEFT:
 				if event.pressed:
-					var clicked_on_photo: bool = is_mouse_on_photo(get_global_mouse_position())
 					reset_interaction_state()
-					if clicked_on_photo:
+					if hidden_photo.visible and not is_mouse_over_ui():
 						is_rotating_photo = true
 					last_mouse_position = get_global_mouse_position()
 				else:
 					reset_interaction_state()
 			elif event.button_index == MOUSE_BUTTON_RIGHT:
 				if event.pressed:
-					var clicked_on_photo: bool = is_mouse_on_photo(get_global_mouse_position())
 					reset_interaction_state()
-					if clicked_on_photo:
+					if hidden_photo.visible and not is_mouse_over_ui():
 						is_dragging_photo = true
 					last_mouse_position = get_global_mouse_position()
 				else:
@@ -186,6 +186,10 @@ func _input(event: InputEvent) -> void:
 				return
 			if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 				try_find_photo(event.position)
+
+func is_mouse_over_ui() -> bool:
+	var hovered: Control = get_viewport().gui_get_hovered_control()
+	return hovered != null and hovered != hidden_photo_button and (hovered is BaseButton or gallery_panel.is_ancestor_of(hovered) or hovered == gallery_panel)
 
 func is_mouse_on_photo(mouse_position: Vector2) -> bool:
 	if not hidden_photo.visible:
@@ -228,11 +232,21 @@ func start_round() -> void:
 	show_narrative()
 	update_ui_visibility()
 
+func load_texture_from_path(path: String) -> Texture2D:
+	var loaded_resource: Resource = ResourceLoader.load(path)
+	if loaded_resource is Texture2D:
+		return loaded_resource as Texture2D
+	push_warning("Failed to load texture resource: %s" % path)
+	return null
+
 func prepare_round_assets() -> void:
 	var background_path: String = selected_background_path if selected_background_path != "" else background_paths[randi() % background_paths.size()]
 	var photo_path: String = selected_photo_path if selected_photo_path != "" else photo_paths[randi() % photo_paths.size()]
-	current_background_texture = load(background_path)
-	current_photo_texture = load(photo_path)
+	current_background_texture = load_texture_from_path(background_path)
+	current_photo_texture = load_texture_from_path(photo_path)
+	if current_background_texture == null or current_photo_texture == null:
+		push_warning("Could not load required round textures for %s and %s" % [background_path, photo_path])
+		return
 	background_sprite.texture = current_background_texture
 	hidden_photo.texture = current_photo_texture
 	hidden_photo.modulate = Color(1, 1, 1, 0.9)
@@ -380,7 +394,14 @@ func adjust_camera_zoom(delta: float) -> void:
 	if zoom_tween != null:
 		zoom_tween.kill()
 	zoom_tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	zoom_tween.tween_property(camera_2d, "zoom", Vector2.ONE * target_zoom, 0.12)
+	zoom_tween.tween_method(set_camera_zoom_around_center, current_zoom, target_zoom, 0.12)
+
+# Camera2D uses a top-left anchor, so position is compensated to keep the screen center fixed.
+func set_camera_zoom_around_center(new_zoom: float) -> void:
+	var half_viewport: Vector2 = camera_2d.get_viewport_rect().size * 0.5
+	var center: Vector2 = camera_2d.global_position + half_viewport / camera_2d.zoom
+	camera_2d.zoom = Vector2.ONE * new_zoom
+	camera_2d.global_position = center - half_viewport / camera_2d.zoom
 
 func adjust_hidden_photo_scale(delta: float) -> void:
 	hidden_photo_controller.adjust_hidden_photo_scale(delta)
@@ -540,7 +561,9 @@ func build_gallery() -> void:
 	scroll.add_child(gallery_grid)
 
 	for photo_path in photo_paths:
-		var texture:Texture2D = load(photo_path)
+		var texture:Texture2D = load_texture_from_path(photo_path)
+		if texture == null:
+			continue
 		var image = texture.get_image()
 		image.resize(256, 256)
 		
@@ -573,8 +596,8 @@ func create_submit_button() -> void:
 func select_photo(photo_path: String) -> void:
 	reset_interaction_state()
 	selected_photo_path = photo_path
-	if FileAccess.file_exists(photo_path):
-		var texture: Texture2D = load(photo_path)
+	var texture: Texture2D = load_texture_from_path(photo_path)
+	if texture != null:
 		hidden_photo.texture = texture
 		hidden_photo_button.texture_normal = texture
 		current_photo_texture = texture

@@ -4,6 +4,8 @@ var master_volume: float = 1.0
 var background_volume: float = 0.8
 var ui_volume: float = 0.8
 var language: String = "Français"
+var round_time_seconds: int = 60
+var round_count: int = 4
 
 var keybinds: Dictionary = {
 	"move_up": KEY_W,
@@ -44,7 +46,14 @@ const TEXT: Dictionary = {
 		"placing": "Place the photo with your mouse, then click to lock it in.",
 		"searching": "The screen will black out, then you will search for the hidden memory.",
 		"final_message": "The memory has been found.",
-		"choose_memory": "Choose a memory"
+		"choose_memory": "Choose a memory",
+		"time_per_round": "Time per round",
+		"number_of_rounds": "Number of rounds",
+		"time_30s": "30 secs",
+		"time_1m": "1 min",
+		"time_2m": "2 min",
+		"time_3m": "3 min",
+		"time_5m": "5 min"
 	},
 	"Français": {
 		"title": "Chasse aux Souvenirs",
@@ -71,7 +80,14 @@ const TEXT: Dictionary = {
 		"placing": "Placez la photo avec la souris, puis cliquez pour la verrouiller.",
 		"searching": "L'écran s'éteindra, puis vous chercherez le souvenir caché.",
 		"final_message": "Le souvenir a été trouvé.",
-		"choose_memory": "Choisissez un souvenir"
+		"choose_memory": "Choisissez un souvenir",
+		"time_per_round": "Temps par manche",
+		"number_of_rounds": "Nombre de manches",
+		"time_30s": "30 secs",
+		"time_1m": "1 min",
+		"time_2m": "2 min",
+		"time_3m": "3 min",
+		"time_5m": "5 min"
 	}
 }
 
